@@ -1,0 +1,12 @@
+{
+  "name": "کارکرد من - ثبت تردد شمسی",
+  "short_name": "کارکرد من",
+  "lang": "fa",
+  "dir": "rtl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f3f6fb",
+  "theme_color": "#172554",
+  "icons": []
+}
