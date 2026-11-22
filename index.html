@@ -27,7 +27,7 @@ header{background:linear-gradient(135deg,#172554,#1e40af);color:#fff;margin:0 -1
 .actions{display:flex;gap:8px;margin-top:12px}.btn{border:0;border-radius:12px;padding:12px 14px;font:inherit;font-weight:700;cursor:pointer}.primary{background:var(--blue);color:white;flex:1}.secondary{background:var(--soft);color:#334155}.danger{background:#fff1f2;color:#be123c}
 .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.metric{background:#f7f9fc;border-radius:13px;padding:12px 8px}.metric small{display:block;color:var(--muted);font-size:11px;margin-bottom:6px}.metric b{font-size:17px;direction:ltr;display:block}.metric.green b{color:var(--green)}
 .summarygrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.summary{padding:13px;border-radius:14px;background:#f7f9fc}.summary small{display:block;color:var(--muted);font-size:11px}.summary b{display:block;font-size:20px;margin-top:6px;direction:ltr}
-.foot{font-size:11px;color:var(--muted);text-align:center;padding:18px 8px 5px;line-height:1.8}
+.leavebox{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}.leaveopts{display:flex;gap:8px;flex-wrap:wrap}.leaveopts label{display:flex;align-items:center;gap:6px;background:#f7f9fc;border:1px solid var(--line);border-radius:11px;padding:9px 11px;font-size:13px}.leaveopts input{accent-color:var(--blue)}.leavehours{margin-top:10px;max-width:180px}.leavehours input{width:100%;border:1px solid var(--line);background:#f8fafc;border-radius:12px;padding:11px;font:inherit;direction:ltr;text-align:center}.notearea{width:100%;min-height:76px;resize:vertical;border:1px solid var(--line);background:#f8fafc;border-radius:12px;padding:11px;font:inherit;line-height:1.6}.taskrow{display:flex;gap:8px;align-items:center;margin-top:8px;background:#f7f9fc;padding:9px 10px;border-radius:11px}.taskrow input[type=checkbox]{width:18px;height:18px;accent-color:var(--green)}.taskrow span{flex:1;font-size:13px;overflow-wrap:anywhere}.taskrow.done span{text-decoration:line-through;color:var(--muted)}.taskrow button{border:0;background:#fff1f2;color:#be123c;border-radius:8px;padding:5px 9px;font-size:12px}.taskadd{display:flex;gap:8px;margin-top:9px}.taskadd input{min-width:0;flex:1;border:1px solid var(--line);background:#f8fafc;border-radius:11px;padding:10px;font:inherit}.foot{font-size:11px;color:var(--muted);text-align:center;padding:18px 8px 5px;line-height:1.8}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#172554;color:white;padding:11px 18px;border-radius:22px;font-size:13px;opacity:0;pointer-events:none;transition:.2s}.toast.show{opacity:1}
 @media(max-width:370px){.day{min-height:49px}.day .mini{font-size:8px}.metrics{gap:5px}.metric{padding:10px 5px}}
 </style>
@@ -49,6 +49,15 @@ header{background:linear-gradient(135deg,#172554,#1e40af);color:#fff;margin:0 -1
   <div class="field"><label for="inTime">ساعت ورود</label><input id="inTime" type="time"></div>
   <div class="field"><label for="outTime">ساعت خروج</label><input id="outTime" type="time"></div>
  </div>
+ <div class="leavebox">
+  <div class="field"><label>نوع مرخصی این روز</label></div>
+  <div class="leaveopts">
+   <label><input type="radio" name="leaveType" value="none" checked> بدون مرخصی</label>
+   <label><input type="radio" name="leaveType" value="hourly"> مرخصی ساعتی</label>
+   <label><input type="radio" name="leaveType" value="daily"> مرخصی روزانه</label>
+  </div>
+  <div class="leavehours" id="leaveHoursWrap" hidden><label for="leaveHours" style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px">مدت مرخصی (ساعت)</label><input id="leaveHours" type="number" min="0.25" max="8" step="0.25" placeholder="مثلاً ۲٫۵"></div>
+ </div>
  <div class="actions"><button class="btn primary" id="save">ذخیره اطلاعات روز</button><button class="btn secondary" id="clear">پاک‌کردن</button></div>
  <div style="height:14px"></div>
  <div class="metrics">
@@ -58,8 +67,18 @@ header{background:linear-gradient(135deg,#172554,#1e40af);color:#fff;margin:0 -1
  </div>
 </section>
 <section class="panel">
+ <div class="panelhead"><strong>یادداشت و کارهای روزانه</strong><span class="datehint">برای هر تاریخ جداگانه</span></div>
+ <div class="field"><label for="dayNote">یادداشت روز</label><textarea id="dayNote" class="notearea" placeholder="توضیحات یا یادداشت‌های مربوط به این روز..."></textarea></div>
+ <div style="height:14px"></div><div class="field"><label>فهرست کارها</label></div>
+ <div id="taskList"></div>
+ <div class="taskadd"><input id="newTask" type="text" placeholder="عنوان کار جدید..."><button class="btn secondary" id="addTask">افزودن</button></div>
+ <div class="actions"><button class="btn primary" id="saveNotes">ذخیره یادداشت و کارها</button></div>
+</section>
+<section class="panel">
  <div class="panelhead"><strong>گزارش ماهانه</strong><span class="datehint" id="reportMonth">—</span></div>
  <div class="summarygrid">
+  <div class="summary"><small>روزهای مرخصی روزانه</small><b id="monthDailyLeave">۰</b></div>
+  <div class="summary"><small>مجموع مرخصی ساعتی</small><b id="monthHourlyLeave">۰:۰۰</b></div>
   <div class="summary"><small>مجموع کارکرد</small><b id="monthWorked">۰:۰۰</b></div>
   <div class="summary"><small>مجموع اضافه‌کاری</small><b id="monthOver">۰:۰۰</b></div>
   <div class="summary"><small>مجموع کسری کار</small><b id="monthShort">۰:۰۰</b></div>
@@ -90,7 +109,7 @@ function dateFor(y,m,d){ // find Gregorian date matching a Jalali date, scanning
 function monthDates(y,m){let out=[];const start=new Date(y+621,0,1);for(let i=0;i<430;i++){let x=new Date(start);x.setDate(start.getDate()+i);let p=pparts(x);if(p.year===y&&p.month===m)out.push({date:x,day:p.day})}return out}
 function padTime(min){let h=Math.floor(min/60),m=min%60;return `${fa.format(h)}:${fa.format(m).padStart(2,'۰')}`}
 function mins(t){if(!t)return null;let [h,m]=t.split(':').map(Number);return h*60+m}
-function calc(r){if(!r||!r.in||!r.out)return {w:0,o:0,s:0,valid:false};let a=mins(r.in),b=mins(r.out);if(b<a)b+=1440;let w=b-a;return {w,o:Math.max(0,w-480),s:Math.max(0,480-w),valid:true}}
+function calc(r){if(!r)r={};let w=0,valid=!!(r.in&&r.out);if(valid){let a=mins(r.in),b=mins(r.out);if(b<a)b+=1440;w=b-a}let leave=r.leaveType==='daily'?480:(r.leaveType==='hourly'?Math.round((Number(r.leaveHours)||0)*60):0);return {w,o:Math.max(0,w-480),s:Math.max(0,480-w-leave),leave,valid:valid||leave>0}}
 function timeText(n){return `${fa.format(Math.floor(n/60))}:${fa.format(n%60).padStart(2,'۰')}`}
 function showToast(s){let t=document.getElementById('toast');t.textContent=s;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
 function render(){
@@ -103,16 +122,22 @@ function render(){
  loadFieldsOnly();report();
 }
 function selectedLabel(k){let [y,m,d]=k.split('-').map(Number);let dt=dateFor(y,m,d);return dt?fmtDate.format(dt):k}
-function loadFieldsOnly(){let r=records[selectedKey]||{};document.getElementById('inTime').value=r.in||'';document.getElementById('outTime').value=r.out||'';updateDaily()}
+function loadFieldsOnly(){let r=records[selectedKey]||{};document.getElementById('inTime').value=r.in||'';document.getElementById('outTime').value=r.out||'';let lt=r.leaveType||'none';document.querySelectorAll('input[name=leaveType]').forEach(x=>x.checked=x.value===lt);document.getElementById('leaveHours').value=r.leaveHours||'';document.getElementById('leaveHoursWrap').hidden=lt!=='hourly';document.getElementById('dayNote').value=r.note||'';renderTasks(r.tasks||[]);updateDaily()}
 function loadSelected(){document.getElementById('selectedDate').textContent=selectedLabel(selectedKey);loadFieldsOnly()}
-function updateDaily(){let c=calc({in:document.getElementById('inTime').value,out:document.getElementById('outTime').value});document.getElementById('worked').textContent=timeText(c.w);document.getElementById('overtime').textContent=timeText(c.o);document.getElementById('shortage').textContent=timeText(c.s)}
-function report(){let total={w:0,o:0,s:0,n:0};for(const [k,r] of Object.entries(records)){let [y,m]=k.split('-').map(Number);if(y===viewY&&m===viewM){let c=calc(r);if(c.valid){total.w+=c.w;total.o+=c.o;total.s+=c.s;total.n++}}}document.getElementById('monthWorked').textContent=timeText(total.w);document.getElementById('monthOver').textContent=timeText(total.o);document.getElementById('monthShort').textContent=timeText(total.s);document.getElementById('daysCount').textContent=fa.format(total.n)}
+function updateDaily(){let c=calc({in:document.getElementById('inTime').value,out:document.getElementById('outTime').value});document.getElementById('worked').textContent=timeText(c.w);document.getElementById('overtime').textContent=timeText(c.o);document.getElementById('shortage').textContent=timeText(c.s);document.getElementById('leaveHoursWrap').hidden=document.querySelector('input[name=leaveType]:checked').value!=='hourly'}
+function report(){let total={w:0,o:0,s:0,n:0};for(const [k,r] of Object.entries(records)){let [y,m]=k.split('-').map(Number);if(y===viewY&&m===viewM){let c=calc(r);if(c.valid){total.w+=c.w;total.o+=c.o;total.s+=c.s;total.n++}}}document.getElementById('monthWorked').textContent=timeText(total.w);document.getElementById('monthOver').textContent=timeText(total.o);document.getElementById('monthShort').textContent=timeText(total.s);document.getElementById('daysCount').textContent=fa.format(total.n);let daily=0,hourly=0;for(const [k,r] of Object.entries(records)){let [y,m]=k.split('-').map(Number);if(y===viewY&&m===viewM){if(r.leaveType==='daily')daily++;if(r.leaveType==='hourly')hourly+=Math.round((Number(r.leaveHours)||0)*60)}}document.getElementById('monthDailyLeave').textContent=fa.format(daily);document.getElementById('monthHourlyLeave').textContent=timeText(hourly)}
 document.getElementById('inTime').addEventListener('input',updateDaily);document.getElementById('outTime').addEventListener('input',updateDaily);
-document.getElementById('save').addEventListener('click',()=>{let a=document.getElementById('inTime').value,b=document.getElementById('outTime').value;if(!a&&!b){delete records[selectedKey]}else{records[selectedKey]={in:a,out:b}}localStorage.setItem(storeKey,JSON.stringify(records));render();showToast('اطلاعات ذخیره شد')});
-document.getElementById('clear').addEventListener('click',()=>{document.getElementById('inTime').value='';document.getElementById('outTime').value='';delete records[selectedKey];localStorage.setItem(storeKey,JSON.stringify(records));render();showToast('اطلاعات این روز پاک شد')});
+document.getElementById('save').addEventListener('click',()=>{let a=document.getElementById('inTime').value,b=document.getElementById('outTime').value,old=records[selectedKey]||{},leaveType=document.querySelector('input[name=leaveType]:checked').value,leaveHours=document.getElementById('leaveHours').value;if(leaveType==='hourly'&&(!leaveHours||Number(leaveHours)<=0||Number(leaveHours)>8)){showToast('مدت مرخصی ساعتی را بین ۰٫۲۵ تا ۸ وارد کن');return}let r={...old,in:a,out:b,leaveType,leaveHours:leaveType==='hourly'?Number(leaveHours):0};if(!a&&!b&&leaveType==='none'&&!r.note&&!(r.tasks||[]).length){delete records[selectedKey]}else records[selectedKey]=r;localStorage.setItem(storeKey,JSON.stringify(records));render();showToast('اطلاعات روز ذخیره شد')});
+document.getElementById('clear').addEventListener('click',()=>{document.getElementById('inTime').value='';document.getElementById('outTime').value='';document.querySelector('input[name=leaveType][value=none]').checked=true;document.getElementById('leaveHours').value='';delete records[selectedKey];localStorage.setItem(storeKey,JSON.stringify(records));render();showToast('تمام اطلاعات این روز پاک شد')});
+function renderTasks(tasks){let box=document.getElementById('taskList');box.innerHTML='';tasks.forEach((task,i)=>{let row=document.createElement('div');row.className='taskrow'+(task.done?' done':'');let cb=document.createElement('input');cb.type='checkbox';cb.checked=!!task.done;cb.addEventListener('change',()=>{let r=records[selectedKey]||{};r.tasks=r.tasks||[];r.tasks[i].done=cb.checked;records[selectedKey]=r;localStorage.setItem(storeKey,JSON.stringify(records));renderTasks(r.tasks)});let label=document.createElement('span');label.textContent=task.text;let del=document.createElement('button');del.textContent='حذف';del.addEventListener('click',()=>{let r=records[selectedKey]||{};r.tasks=(r.tasks||[]).filter((_,n)=>n!==i);records[selectedKey]=r;localStorage.setItem(storeKey,JSON.stringify(records));renderTasks(r.tasks)});row.append(cb,label,del);box.append(row)})}
+function saveNotes(){let r=records[selectedKey]||{};r.note=document.getElementById('dayNote').value.trim();records[selectedKey]=r;localStorage.setItem(storeKey,JSON.stringify(records));showToast('یادداشت ذخیره شد')}
+document.getElementById('saveNotes').addEventListener('click',saveNotes);
+document.getElementById('addTask').addEventListener('click',()=>{let input=document.getElementById('newTask'),v=input.value.trim();if(!v)return;let r=records[selectedKey]||{};r.tasks=r.tasks||[];r.tasks.push({text:v,done:false});records[selectedKey]=r;localStorage.setItem(storeKey,JSON.stringify(records));input.value='';renderTasks(r.tasks);showToast('کار اضافه شد')});
+document.getElementById('newTask').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('addTask').click()});
+document.querySelectorAll('input[name=leaveType]').forEach(x=>x.addEventListener('change',()=>{document.getElementById('leaveHoursWrap').hidden=x.value!=='hourly';updateDaily()}));
 function changeMonth(delta){viewM+=delta;if(viewM<1){viewM=12;viewY--}if(viewM>12){viewM=1;viewY++}selectedKey=key(viewY,viewM,1);render()}
 document.getElementById('prev').addEventListener('click',()=>changeMonth(-1));document.getElementById('next').addEventListener('click',()=>changeMonth(1));
-document.getElementById('export').addEventListener('click',()=>{let rows=[['تاریخ شمسی','ورود','خروج','کارکرد دقیقه','اضافه کاری دقیقه','کسری دقیقه']];for(const [k,r] of Object.entries(records).sort()){let [y,m]=k.split('-').map(Number);if(y===viewY&&m===viewM){let c=calc(r);rows.push([k,r.in||'',r.out||'',c.w,c.o,c.s])}}let csv='\ufeff'+rows.map(r=>r.map(x=>'"'+String(x).replaceAll('"','""')+'"').join(',')).join('\r\n');let blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`attendance-${viewY}-${String(viewM).padStart(2,'0')}.csv`;a.click();URL.revokeObjectURL(url);showToast('فایل گزارش آماده شد')});
+document.getElementById('export').addEventListener('click',()=>{let rows=[['تاریخ شمسی','ورود','خروج','نوع مرخصی','مدت مرخصی ساعتی','کارکرد دقیقه','اضافه کاری دقیقه','کسری دقیقه','یادداشت روز','کارها']];for(const [k,r] of Object.entries(records).sort()){let [y,m]=k.split('-').map(Number);if(y===viewY&&m===viewM){let c=calc(r);rows.push([k,r.in||'',r.out||'',r.leaveType==='daily'?'روزانه':(r.leaveType==='hourly'?'ساعتی':'ندارد'),r.leaveHours||0,c.w,c.o,c.s,r.note||'',(r.tasks||[]).map(t=>(t.done?'[انجام شد] ':'[در انتظار] ')+t.text).join(' | ')])}}let csv='\ufeff'+rows.map(r=>r.map(x=>'"'+String(x).replaceAll('"','""')+'"').join(',')).join('\r\n');let blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`attendance-${viewY}-${String(viewM).padStart(2,'0')}.csv`;a.click();URL.revokeObjectURL(url);showToast('فایل گزارش آماده شد')});
 if('serviceWorker' in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
 render();
 </script>
